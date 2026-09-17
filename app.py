@@ -6,7 +6,7 @@ st.set_page_config(page_title="ビジネスメール書き換え訓練", layout=
 st.title("📧 ビジネスメール書き換え訓練")
 st.caption("後輩・同僚と共有できるトレーニングツールです。")
 
-# 1. API設定（最新SDK & Gemini 3.6 Flash指定）
+# 1. API設定
 api_key = st.secrets.get("GOOGLE_API_KEY", None)
 client = None
 
@@ -18,7 +18,7 @@ if api_key:
 else:
     st.error("APIキーが設定されていないか、無効です。Secretsを確認してください。")
 
-# 2. 問題データの読み込み（Excelファイル対応）
+# 2. 問題データの読み込み（GitHub上の problems.xlsx を読み込み）
 @st.cache_data
 def load_data():
     try:
@@ -61,9 +61,8 @@ if not df.empty:
                 【修正後の文】: {user_answer}
                 """
                 try:
-                    # モデル名を最新の gemini-3.6-flash に修正
                     response = client.models.generate_content(
-                        model='gemini-3.6-flash',
+                        model='gemini-2.5-flash',
                         contents=prompt,
                     )
                     st.subheader("採点結果とフィードバック")
