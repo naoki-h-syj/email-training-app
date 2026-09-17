@@ -18,13 +18,13 @@ if api_key:
 else:
     st.error("APIキーが設定されていないか、無効です。Secretsを確認してください。")
 
-# 2. 問題データの読み込み（ttl=0 でキャッシュの自動クリアを有効化）
+# 2. 問題データの読み込み
 @st.cache_data(ttl=0)
 def load_data():
     try:
         data = pd.read_excel('problems.xlsx')
     except FileNotFoundError:
-        st.error("problems.xlsx が見つかりません。ファイル名が正確か確認してください。")
+        st.error("problems.xlsx が見つかりません。")
         return pd.DataFrame(columns=['ID', 'Situation', 'OriginalText'])
     except Exception as e:
         st.error(f"Excelファイルの読み込みエラー: {e}")
@@ -35,8 +35,13 @@ df = load_data()
 
 # 3. アプリ画面の構成
 if not df.empty:
-    selected_id = st.selectbox("練習問題を選択してください", df['ID'].tolist())
-    target_row = df[df['ID'] == selected_id].iloc[0]
+    # プルダウン用の表示ラベルを作成（例: 「問1 納期遅延の催促」）
+    options = [f"{row['ID']} {row['Situation']}" for _, row in df.iterrows()]
+    selected_option = st.selectbox("練習問題を選択してください", options)
+    
+    # 選択された問題のインデックスを取得
+    selected_index = options.index(selected_option)
+    target_row = df.iloc[selected_index]
 
     st.info(f"**【状況設定】**\n\n{target_row['Situation']}")
     st.warning(f"**【修正前のトゲがある文】**\n\n{target_row['OriginalText']}")
