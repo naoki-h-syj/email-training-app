@@ -8,8 +8,20 @@ model = None
 
 if api_key:
     genai.configure(api_key=api_key)
-    # 安定版のモデル名（gemini-2.0-flash または gemini-1.5-flash）を指定
-    model = genai.GenerativeModel('gemini-2.0-flash')
+    
+    # --- デバッグ用：利用可能なモデルを画面に表示 ---
+    try:
+        available_models = [
+            m.name for m in genai.list_models()
+            if 'generateContent' in m.supported_generation_methods
+        ]
+        st.write("🔑 **利用可能なモデル一覧:**", available_models)
+    except Exception as e:
+        st.error(f"モデル一覧の取得に失敗しました: {e}")
+    # ----------------------------------------------
+
+    # 定義するモデル名（一覧に表示された名称に合わせて調整してください）
+    model = genai.GenerativeModel('gemini-1.5-flash')
 else:
     st.error("APIキーが設定されていないか、無効です。")
 
