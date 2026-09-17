@@ -44,9 +44,14 @@ if not df.empty:
     st.info(f"**【状況設定】**\n\n{target_row['Situation']}")
     st.warning(f"**【修正前の原文】**\n\n{target_row['OriginalText']}")
 
-    user_answer = st.text_area("ビジネスで使用できる内容に変換してください（書き換え・返信のどちらでも可）", height=200)
+    # keyに問題IDを含めることで、問題を切り替えた際に入力内容がクリアされるように設定
+    user_answer = st.text_area(
+        "ビジネスで使用できる内容に変換してください（書き換え・返信のどちらでも可）",
+        height=200,
+        key=f"user_answer_{target_row['ID']}"
+    )
 
-    if st.button("採点する"):
+    if st.button("採点する", key=f"btn_{target_row['ID']}"):
         if not client:
             st.error("APIキーが読み込めていないため採点できません。")
         elif user_answer:
