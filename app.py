@@ -18,16 +18,16 @@ if api_key:
 else:
     st.error("APIキーが設定されていないか、無効です。Secretsを確認してください。")
 
-# 2. 問題データの読み込み（GitHub上の problems.xlsx を読み込み）
-@st.cache_data
+# 2. 問題データの読み込み（ttl=0 でキャッシュの自動クリアを有効化）
+@st.cache_data(ttl=0)
 def load_data():
     try:
         data = pd.read_excel('problems.xlsx')
     except FileNotFoundError:
-        st.error("problems.xlsx が見つかりません。")
+        st.error("problems.xlsx が見つかりません。ファイル名が正確か確認してください。")
         return pd.DataFrame(columns=['ID', 'Situation', 'OriginalText'])
     except Exception as e:
-        st.error(f"Excelファイルの読み込み中にエラーが発生しました: {e}")
+        st.error(f"Excelファイルの読み込みエラー: {e}")
         return pd.DataFrame(columns=['ID', 'Situation', 'OriginalText'])
     return data
 
