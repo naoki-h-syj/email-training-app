@@ -5,7 +5,7 @@ import pandas as pd
 # 1. API設定
 try:
     genai.configure(api_key=st.secrets["GOOGLE_API_KEY"])
-    model = genai.GenerativeModel('gemini-1.5-flash')
+    model = genai.GenerativeModel('gemini-2.5-flash')
 except:
     st.error("APIキーが設定されていないか、無効です。")
 
