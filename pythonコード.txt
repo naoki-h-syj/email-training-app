@@ -1,0 +1,44 @@
+import streamlit as st
+import google.generativeai as genai
+import pandas as pd
+
+# API設定（StreamlitのSecretsから読み込み）
+genai.configure(api_key=st.secrets["GOOGLE_API_KEY"])
+model = genai.GenerativeModel('gemini-1.5-flash')
+
+st.set_page_config(page_title="ビジネスメール書き換え訓練", layout="centered")
+st.title("📧 ビジネスメール書き換え訓練")
+st.caption("感情的なトゲを抜き、プロフェッショナルな文章に修正しましょう。")
+
+# 問題の読み込み
+df = pd.read_csv('problems.csv')
+problem_titles = df['ID'].tolist()
+
+selected_id = st.selectbox("練習問題を選択してください", problem_titles)
+target_row = df[df['ID'] == selected_id].iloc[0]
+
+st.info(f"**【状況】** {target_row['Situation']}")
+st.warning(f"**【修正前の文】** \n\n {target_row['OriginalText']}")
+
+user_answer = st.text_area("修正後の文章を入力してください", height=200)
+
+if st.button("採点する"):
+    if user_answer:
+        with st.spinner('採点中...'):
+            prompt = f"""
+            あなたはビジネスマナー講師です。以下の「修正前の文」を、ユーザーが「修正後の文」に書き換えました。
+            100点満点で採点し、良かった点と改善点をアドバイスしてください。
+
+            【評価基準】
+            1. 感情の抑制：相手を責めるニュアンスが消えているか
+            2. 意図の明確化：何をしてほしいのかが正確に伝わるか
+            3. 代替案の提示：否定だけでなく、建設的な提案があるか
+
+            【修正前の文】: {target_row['OriginalText']}
+            【修正後の文】: {user_answer}
+            """
+            response = model.generate_content(prompt)
+            st.subheader("採点結果")
+            st.write(response.text)
+    else:
+        st.error("文章を入力してください。")
