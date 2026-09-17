@@ -1,33 +1,22 @@
 import streamlit as st
-import google.generativeai as genai
+from google import genai
 import pandas as pd
-
-# 1. API設定
-api_key = st.secrets.get("GOOGLE_API_KEY", None)
-model = None
-
-if api_key:
-    genai.configure(api_key=api_key)
-    
-    # --- デバッグ用：利用可能なモデルを画面に表示 ---
-    try:
-        available_models = [
-            m.name for m in genai.list_models()
-            if 'generateContent' in m.supported_generation_methods
-        ]
-        st.write("🔑 **利用可能なモデル一覧:**", available_models)
-    except Exception as e:
-        st.error(f"モデル一覧の取得に失敗しました: {e}")
-    # ----------------------------------------------
-
-    # 定義するモデル名（一覧に表示された名称に合わせて調整してください）
-    model = genai.GenerativeModel('gemini-1.5-flash')
-else:
-    st.error("APIキーが設定されていないか、無効です。")
 
 st.set_page_config(page_title="ビジネスメール書き換え訓練", layout="centered")
 st.title("📧 ビジネスメール書き換え訓練")
 st.caption("後輩・同僚と共有できるトレーニングツールです。")
+
+# 1. API設定（最新SDK）
+api_key = st.secrets.get("GOOGLE_API_KEY", None)
+client = None
+
+if api_key:
+    try:
+        client = genai.Client(api_key=api_key)
+    except Exception as e:
+        st.error(f"APIの初期化に失敗しました: {e}")
+else:
+    st.error("APIキーが設定されていないか、無効です。Secretsを確認してください。")
 
 # 2. 問題データの読み込み
 @st.cache_data
@@ -52,8 +41,8 @@ if not df.empty:
     user_answer = st.text_area("修正後のプロフェッショナルな文章を入力してください", height=200)
 
     if st.button("採点する"):
-        if not model:
-            st.error("APIキーが正しく読み込めていないため採点できません。Secretsの設定を確認してください。")
+        if not client:
+            st.error("APIキーが読み込めていないため採点できません。")
         elif user_answer:
             with st.spinner('AIが採点中...'):
                 prompt = f"""
@@ -68,9 +57,15 @@ if not df.empty:
                 【修正前の文】: {target_row['OriginalText']}
                 【修正後の文】: {user_answer}
                 """
-                response = model.generate_content(prompt)
-                st.subheader("採点結果とフィードバック")
-                st.write(response.text)
+                try:
+                    response = client.models.generate_content(
+                        model='gemini-2.5-flash',
+                        contents=prompt,
+                    )
+                    st.subheader("採点結果とフィードバック")
+                    st.write(response.text)
+                except Exception as e:
+                    st.error(f"採点中にエラーが発生しました: {e}")
         else:
             st.error("文章を入力してください。")
 else:
