@@ -6,7 +6,7 @@ st.set_page_config(page_title="ビジネスメール書き換え訓練", layout=
 st.title("📧 ビジネスメール書き換え訓練")
 st.caption("後輩・同僚と共有できるトレーニングツールです。")
 
-# 1. API設定（最新SDK）
+# 1. API設定（最新SDK & Gemini 3.6 Flash指定）
 api_key = st.secrets.get("GOOGLE_API_KEY", None)
 client = None
 
@@ -18,13 +18,16 @@ if api_key:
 else:
     st.error("APIキーが設定されていないか、無効です。Secretsを確認してください。")
 
-# 2. 問題データの読み込み
+# 2. 問題データの読み込み（Excelファイル対応）
 @st.cache_data
 def load_data():
     try:
-        data = pd.read_csv('problems.csv', encoding='utf-8')
+        data = pd.read_excel('problems.xlsx')
     except FileNotFoundError:
-        st.error("problems.csvが見つかりません。")
+        st.error("problems.xlsx が見つかりません。")
+        return pd.DataFrame(columns=['ID', 'Situation', 'OriginalText'])
+    except Exception as e:
+        st.error(f"Excelファイルの読み込み中にエラーが発生しました: {e}")
         return pd.DataFrame(columns=['ID', 'Situation', 'OriginalText'])
     return data
 
@@ -58,8 +61,9 @@ if not df.empty:
                 【修正後の文】: {user_answer}
                 """
                 try:
+                    # モデル名を最新の gemini-3.6-flash に修正
                     response = client.models.generate_content(
-                        model='gemini-2.5-flash',
+                        model='gemini-3.6-flash',
                         contents=prompt,
                     )
                     st.subheader("採点結果とフィードバック")
@@ -69,4 +73,4 @@ if not df.empty:
         else:
             st.error("文章を入力してください。")
 else:
-    st.write("現在、問題が登録されていません。CSVファイルをアップロードしてください。")
+    st.write("現在、問題が登録されていません。Excelファイルをアップロードしてください。")
