@@ -3,20 +3,23 @@ import google.generativeai as genai
 import pandas as pd
 
 # 1. API設定
-try:
-    genai.configure(api_key=st.secrets["GOOGLE_API_KEY"])
-    model = genai.GenerativeModel('gemini-2.5-flash')
-except:
+api_key = st.secrets.get("GOOGLE_API_KEY", None)
+model = None
+
+if api_key:
+    genai.configure(api_key=api_key)
+    # 安定版のモデル名（gemini-2.0-flash または gemini-1.5-flash）を指定
+    model = genai.GenerativeModel('gemini-2.0-flash')
+else:
     st.error("APIキーが設定されていないか、無効です。")
 
 st.set_page_config(page_title="ビジネスメール書き換え訓練", layout="centered")
 st.title("📧 ビジネスメール書き換え訓練")
 st.caption("後輩・同僚と共有できるトレーニングツールです。")
 
-# 2. 問題データの読み込み（メンテナンス性重視）
+# 2. 問題データの読み込み
 @st.cache_data
 def load_data():
-    # CSVを読み込み。ファイルがない場合は空のデータを作成
     try:
         data = pd.read_csv('problems.csv', encoding='utf-8')
     except FileNotFoundError:
@@ -37,7 +40,9 @@ if not df.empty:
     user_answer = st.text_area("修正後のプロフェッショナルな文章を入力してください", height=200)
 
     if st.button("採点する"):
-        if user_answer:
+        if not model:
+            st.error("APIキーが正しく読み込めていないため採点できません。Secretsの設定を確認してください。")
+        elif user_answer:
             with st.spinner('AIが採点中...'):
                 prompt = f"""
                 あなたは企業の教育担当者です。
