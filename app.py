@@ -22,7 +22,7 @@ else:
 @st.cache_data
 def load_data():
     try:
-        data = pd.read_excel('問題.xlsx')
+        data = pd.read_excel('problems.xlsx')
     except FileNotFoundError:
         st.error("problems.xlsx が見つかりません。")
         return pd.DataFrame(columns=['ID', 'Situation', 'OriginalText'])
