@@ -35,18 +35,18 @@ df = load_data()
 
 # 3. アプリ画面の構成
 if not df.empty:
-    # プルダウン用の表示ラベルを作成（例: 「問1 納期遅延の催促」）
     options = [f"{row['ID']} {row['Situation']}" for _, row in df.iterrows()]
     selected_option = st.selectbox("練習問題を選択してください", options)
     
-    # 選択された問題のインデックスを取得
     selected_index = options.index(selected_option)
     target_row = df.iloc[selected_index]
 
     st.info(f"**【状況設定】**\n\n{target_row['Situation']}")
-    st.warning(f"**【修正前のトゲがある文】**\n\n{target_row['OriginalText']}")
+    # 変更点1: 「【修正前のトゲがある文】」→「【修正前の原文】」
+    st.warning(f"**【修正前の原文】**\n\n{target_row['OriginalText']}")
 
-    user_answer = st.text_area("修正後のプロフェッショナルな文章を入力してください", height=200)
+    # 変更点2: 「修正後のプロフェッショナルな文章を入力してください」→「ビジネスで使用できる内容に変換してください」
+    user_answer = st.text_area("ビジネスで使用できる内容に変換してください", height=200)
 
     if st.button("採点する"):
         if not client:
